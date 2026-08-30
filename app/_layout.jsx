@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import * as SecureStore from 'expo-secure-store'
 import { ErrorDialogProvider } from '../components/ErrorDialog.jsx'
 import PageLoader from '../components/PageLoader.jsx'
+import { useAuth } from '@clerk/expo'
 
 const ONBOARDING_KEY = 'derman-go-onboarding-complete'
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY
@@ -18,6 +19,11 @@ if (!publishableKey) {
 function OnboardingGate({ children }) {
   const [hasFinishedOnboarding, setHasFinishedOnboarding] = useState(null)
   const pathname = usePathname()
+  const { isSignedIn, isLoaded } = useAuth()
+
+useEffect(() => {
+  console.log('App start — isLoaded:', isLoaded, 'isSignedIn:', isSignedIn)
+}, [isLoaded, isSignedIn])
 
   useEffect(() => {
     const loadOnboardingState = async () => {

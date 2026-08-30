@@ -1,4 +1,4 @@
-// hooks/useUserApi.js
+// Hooks/userHooks.js
 import { useCallback } from 'react'
 import { useAuth } from '@clerk/expo'
 import { useErrorDialog } from '../components/ErrorDialog.jsx'
@@ -11,11 +11,7 @@ export const useUserApi = () => {
 
   const createUser = useCallback(async ({ clerkId, name, phone }) => {
     try {
-      console.log('API_URL:', API_URL)
-      console.log('Calling createUser with:', { clerkId, name, phone })
-
       const token = await getToken()
-      console.log('Got token:', token ? 'yes' : 'NO TOKEN')
 
       const response = await fetch(`${API_URL}/users`, {
         method: 'POST',
@@ -26,18 +22,50 @@ export const useUserApi = () => {
         body: JSON.stringify({ clerkId, name, phone }),
       })
 
-      console.log('Response status:', response.status)
       const data = await response.json()
-      console.log('Response data:', data)
-
-      if (!response.ok) throw new Error(data.msg || 'Failed to create user')
-
+      if (!response.ok) throw new Error(data.error || 'Failed to create user')
       return data
     } catch (error) {
-      console.log('CREATE USER ERROR:', error.message, error)
       showError('Could not save your profile', 'Please try again from your profile page.')
     }
   }, [getToken, showError])
 
-  return { createUser }
+  const getUserProfile = useCallback(async (clerkId) => {
+    try {
+      const token = await getToken()
+
+      const response = await fetch(`${API_URL}/users/${clerkId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch user')
+      return data
+    } catch (error) {
+      showError('Could not load your profile', 'Please try again.')
+    }
+  }, [getToken, showError])
+
+  const updateUserProfile = useCallback(async (clerkId, { name, phone }) => {
+    try {
+      const token = await getToken()
+
+      const response = await fetch(`${API_URL}/users/${clerkId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name, phone }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Failed to update user')
+      return data
+    } catch (error) {
+      showError('Could not update your profile', 'Please try again.')
+    }
+  }, [getToken, showError])
+
+  return { createUser, getUserProfile, updateUserProfile }
 }

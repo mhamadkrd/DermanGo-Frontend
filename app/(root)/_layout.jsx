@@ -8,5 +8,7 @@ export default function RootLayout() {
 	if (!isLoaded) return <PageLoader />;
 	if (!isSignedIn) return <Redirect href="/sign-in" />;
 
-	return <Stack />;
+	return <Stack
+	screenOptions={{headerShown:false}}
+	/>;
 }

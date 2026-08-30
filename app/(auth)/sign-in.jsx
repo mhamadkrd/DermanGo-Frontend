@@ -14,6 +14,8 @@ export default function SignInScreen() {
   const { showError } = useErrorDialog()
   const [emailAddress, setEmailAddress] = useState('')
   const [password, setPassword] = useState('')
+  const [needsClientTrust, setNeedsClientTrust] = useState(false)
+  const [trustCode, setTrustCode] = useState('')
 
   const handleSignIn = async () => {
     console.log('SIGN IN TAPPED')
@@ -41,6 +43,17 @@ export default function SignInScreen() {
         return
       }
 
+      if (signIn.status === 'needs_client_trust') {
+        const emailCodeFactor = signIn.supportedSecondFactors?.find(
+          (factor) => factor.strategy === 'email_code'
+        )
+        if (emailCodeFactor) {
+          await signIn.mfa.sendEmailCode()
+          setNeedsClientTrust(true)
+          return
+        }
+      }
+
       if (signIn.status !== 'complete') {
         console.log('status not complete:', signIn.status)
         showError('Sign In Failed', 'Your sign-in needs an additional verification step.')
@@ -64,6 +77,52 @@ export default function SignInScreen() {
       }
       showError('Sign In Failed', msg)
     }
+  }
+
+  const handleVerifyClientTrust = async () => {
+    try {
+      const { error } = await signIn.mfa.verifyEmailCode({ code: trustCode })
+      if (error) {
+        showError('Verification Failed', error.message || 'Invalid code')
+        return
+      }
+
+      if (signIn.status === 'complete') {
+        const { error: finalizeError } = await signIn.finalize({
+          navigate: () => router.replace('/'),
+        })
+        if (finalizeError) {
+          showError('Sign In Failed', finalizeError.message || 'Unable to complete sign-in')
+        }
+      } else {
+        showError('Sign In Failed', 'Unable to complete sign-in')
+      }
+    } catch (error) {
+      showError('Verification Failed', error?.message || 'Invalid code')
+    }
+  }
+
+  if (needsClientTrust) {
+    return (
+      <View style={styles.Container}>
+        <Text style={styles.pageText}>Verify This Device</Text>
+
+        <TextInput
+        style={styles.input}
+          placeholder="Enter verification code"
+          keyboardType="numeric"
+          value={trustCode}
+          onChangeText={setTrustCode}
+        />
+
+        <TouchableOpacity
+        style={styles.signBtn}
+        onPress={handleVerifyClientTrust}
+        >
+          <Text style={styles.signBtnTxt}>Verify</Text>
+        </TouchableOpacity>
+      </View>
+    )
   }
 
   return (

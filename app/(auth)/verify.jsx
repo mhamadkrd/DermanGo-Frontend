@@ -1,44 +1,58 @@
 // app/verify.jsx
 import { useSignUp } from '@clerk/expo'
 import { useEffect, useState } from 'react'
-import { View, TextInput, Button, Text,TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { View, TextInput, Button, Text } from 'react-native'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import {createAuthStyles} from '../../assets/styles/authStyles.jsx'
 import { clearEmailVerification, isEmailVerificationInProgress } from '../../utils/verificationSession.jsx'
 import { useErrorDialog } from '../../components/ErrorDialog.jsx'
+import LoadingButton from '../../components/LoadingButton.jsx'
+import { useUserApi } from '../../Hooks/userHooks.js'
 
 export default function VerifyScreen() {
   const { signUp } = useSignUp()
+  const { createUser } = useUserApi()
   const router = useRouter()
- const styles = createAuthStyles
+  const { name, phone } = useLocalSearchParams()
+  console.log('Received params:', { name, phone })
+  const styles = createAuthStyles
   const { showError } = useErrorDialog()
 
   const [code, setCode] = useState('')
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    // Expo can restore the last route after a reload. Do not allow /verify to
-    // become a startup screen when no sign-up was started in this app session.
     if (!isEmailVerificationInProgress()) {
       router.replace('/sign-in')
     }
   }, [router])
 
   const handleVerify = async () => {
-    const { error } = await signUp.verifications.verifyEmailCode({ code })
-    if (error) {
-      showError('Verification Failed', error.message || 'Invalid code')
-      return
-    }
+    setLoading(true)
+    try {
+      const { error } = await signUp.verifications.verifyEmailCode({ code })
+      if (error) {
+        showError('Verification Failed', error.message || 'Invalid code')
+        return
+      }
 
-    const { error: finalizeError } = await signUp.finalize({
-      navigate: ({ session }) => {
-        clearEmailVerification()
-        router.replace('/')
-      },
-    })
+      const { error: finalizeError } = await signUp.finalize({
+        navigate: async () => {
+          await createUser({
+            clerkId: signUp.createdUserId,
+            name: name || '',
+            phone: phone || '',
+          })
+          clearEmailVerification()
+          router.replace('/')
+        },
+      })
 
-    if (finalizeError) {
-      showError('Verification Failed', finalizeError.message || 'Failed to complete sign up')
+      if (finalizeError) {
+        showError('Verification Failed', finalizeError.message || 'Failed to complete sign up')
+      }
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -55,12 +69,13 @@ export default function VerifyScreen() {
         onChangeText={setCode}
       />
 
-      <TouchableOpacity
-      onPress={handleVerify}
-      style={styles.signBtn}
-      >
-        <Text style={styles.signBtnTxt}>Verify</Text>
-      </TouchableOpacity>
+      <LoadingButton
+        loading={loading}
+        onPress={handleVerify}
+        style={styles.signBtn}
+        textStyle={styles.signBtnTxt}
+        title="Verify"
+      />
       <Button title="Back" onPress={() => {
         clearEmailVerification()
         router.replace('/sign-in')

@@ -14,6 +14,8 @@ export default function SignUpScreen() {
   const { showError } = useErrorDialog()
 
   const [emailAddress, setEmailAddress] = useState('')
+  const [Name, setName] = useState('')
+  const [Phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
 
   const handleSignUp = async () => {
@@ -31,7 +33,11 @@ export default function SignUpScreen() {
 
     // Verification is only available in the current app session.
     startEmailVerification()
-    router.replace('/verify')
+console.log('Navigating to verify with:', { name: Name.trim(), phone: Phone.trim() })
+router.replace({
+  pathname: '/verify',
+  params: { name: Name.trim(), phone: Phone.trim() },
+})
   }
 
   return (
@@ -43,6 +49,16 @@ style={styles.logo}
 />
       
        <Text style={styles.pageText}>Create Account</Text>
+
+
+      <TextInput
+      style={styles.input}
+        autoCapitalize="none"
+        keyboardType="text"
+        placeholder="Full Name"
+        value={Name}
+        onChangeText={setName}
+      />
 
       <TextInput
       style={[styles.input, styles.email]}
@@ -58,6 +74,16 @@ style={styles.logo}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
+      />
+
+      
+      <TextInput
+      style={styles.input}
+        autoCapitalize="none"
+        keyboardType="phone-pad"
+        placeholder="Phone"
+        value={Phone}
+        onChangeText={setPhone}
       />
 
       <TouchableOpacity 

@@ -4,50 +4,65 @@ import { useState } from 'react'
 import { View, TextInput,  Text,Image, TouchableOpacity} from 'react-native'
 import { Link, useRouter } from 'expo-router'
 import {createAuthStyles} from '../../assets/styles/authStyles.jsx'
+import { useErrorDialog } from '../../components/ErrorDialog.jsx'
+
 
 export default function SignInScreen() {
   const { signIn } = useSignIn()
   const router = useRouter()
- const styles = createAuthStyles
-
+  const styles = createAuthStyles
+  const { showError } = useErrorDialog()
   const [emailAddress, setEmailAddress] = useState('')
   const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSignIn = async () => {
-    setErrorMessage('')
+    console.log('SIGN IN TAPPED')
 
     try {
-      // Clerk's current Expo flow requires an identifier before the password.
       const { error: identifierError } = await signIn.create({
         identifier: emailAddress.trim(),
       })
+      console.log('after create, error:', identifierError, 'status:', signIn.status)
 
       if (identifierError) {
-        setErrorMessage(identifierError.message || 'Enter a valid email address')
+        if (identifierError.code === 'identifier_already_signed_in' || identifierError.message?.toLowerCase().includes('already signed in')) {
+          router.replace('/')
+          return
+        }
+        showError('Sign In Failed', identifierError.message || 'Enter a valid email address')
         return
       }
 
       const { error: passwordError } = await signIn.password({ password })
+      console.log('after password, error:', passwordError, 'status:', signIn.status)
+
       if (passwordError) {
-        setErrorMessage(passwordError.message || 'Invalid email or password')
+        showError('Sign In Failed', passwordError.message || 'Invalid email or password')
         return
       }
 
       if (signIn.status !== 'complete') {
-        setErrorMessage('Your sign-in needs an additional verification step.')
+        console.log('status not complete:', signIn.status)
+        showError('Sign In Failed', 'Your sign-in needs an additional verification step.')
         return
       }
 
       const { error: finalizeError } = await signIn.finalize({
         navigate: () => router.replace('/'),
       })
+      console.log('after finalize, error:', finalizeError)
 
       if (finalizeError) {
-        setErrorMessage(finalizeError.message || 'Unable to complete sign-in')
+        showError('Sign In Failed', finalizeError.message || 'Unable to complete sign-in')
       }
     } catch (error) {
-      setErrorMessage(error?.errors?.[0]?.longMessage || error?.message || 'Invalid email or password')
+      console.log('SIGNIN ERROR:', JSON.stringify(error, null, 2))
+      const msg = error?.errors?.[0]?.longMessage || error?.errors?.[0]?.message || error?.message || 'Invalid email or password'
+      if (msg.toLowerCase().includes('already signed in')) {
+        router.replace('/')
+        return
+      }
+      showError('Sign In Failed', msg)
     }
   }
 
@@ -77,10 +92,6 @@ export default function SignInScreen() {
         onChangeText={setPassword}
       />
 
-      {errorMessage ? <Text>{errorMessage}</Text> : null}
-
-         
-
      <TouchableOpacity 
      style={styles.signBtn}
      onPress={handleSignIn}
@@ -94,7 +105,7 @@ export default function SignInScreen() {
       <Link style={styles.link} href="/reset-pass">Forgot password?</Link>
 
  <View style={styles.haveAccView}>
-      <Text>Don&apos;t have an account?</Text>
+      <Text>Don&#39;t have an account?</Text>
       <Link style={styles.link} href="/sign-up"> Sign Up</Link>
       </View>
 

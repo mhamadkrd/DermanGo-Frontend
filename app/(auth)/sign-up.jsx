@@ -5,26 +5,27 @@ import { View, TextInput, Text ,TouchableOpacity, Image } from 'react-native'
 import { Link, useRouter } from 'expo-router'
 import {createAuthStyles} from '../../assets/styles/authStyles.jsx'
 import { startEmailVerification } from '../../utils/verificationSession.jsx'
+import { useErrorDialog } from '../../components/ErrorDialog.jsx'
 
 export default function SignUpScreen() {
   const { signUp } = useSignUp()
   const router = useRouter()
   const styles = createAuthStyles
+  const { showError } = useErrorDialog()
 
   const [emailAddress, setEmailAddress] = useState('')
   const [password, setPassword] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
 
   const handleSignUp = async () => {
     const { error } = await signUp.password({ emailAddress, password })
     if (error) {
-      setErrorMessage(error.message || 'Something went wrong')
+      showError('Sign Up Failed', error.message || 'Something went wrong')
       return
     }
 
     const { error: sendError } = await signUp.verifications.sendEmailCode()
     if (sendError) {
-      setErrorMessage(sendError.message || 'Failed to send verification code')
+      showError('Sign Up Failed', sendError.message || 'Failed to send verification code')
       return
     }
 
@@ -59,8 +60,6 @@ style={styles.logo}
         onChangeText={setPassword}
       />
 
-      {errorMessage ? <Text>{errorMessage}</Text> : null}
-
       <TouchableOpacity 
       style={styles.signBtn}
       onPress={handleSignUp}>
@@ -73,7 +72,7 @@ style={styles.logo}
       <Link style={styles.link} href="/sign-in"> Sign in</Link>
       </View>
 
-      <Link style={styles.link} href="/getStarted"> .</Link>
+      <Link style={styles.link} href="/verify"> .</Link>
     </View>
   )
 }

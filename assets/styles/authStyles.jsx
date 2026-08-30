@@ -43,9 +43,9 @@ input:{
     margin:scale(7),
     padding:scale(10),
     borderRadius:10,
-    borderWidth:1,
+    borderWidth:scale(1),
     borderColor:COLORS.border,
-    color:COLORS.primary,
+    color:COLORS.textPrimary,
 },
 signBtn:{
     backgroundColor:COLORS.primary,

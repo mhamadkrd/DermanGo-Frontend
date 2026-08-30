@@ -5,14 +5,15 @@ import { View, TextInput, Button, Text,TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import {createAuthStyles} from '../../assets/styles/authStyles.jsx'
 import { clearEmailVerification, isEmailVerificationInProgress } from '../../utils/verificationSession.jsx'
+import { useErrorDialog } from '../../components/ErrorDialog.jsx'
 
 export default function VerifyScreen() {
   const { signUp } = useSignUp()
   const router = useRouter()
  const styles = createAuthStyles
+  const { showError } = useErrorDialog()
 
   const [code, setCode] = useState('')
-  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     // Expo can restore the last route after a reload. Do not allow /verify to
@@ -25,7 +26,7 @@ export default function VerifyScreen() {
   const handleVerify = async () => {
     const { error } = await signUp.verifications.verifyEmailCode({ code })
     if (error) {
-      setErrorMessage(error.message || 'Invalid code')
+      showError('Verification Failed', error.message || 'Invalid code')
       return
     }
 
@@ -37,7 +38,7 @@ export default function VerifyScreen() {
     })
 
     if (finalizeError) {
-      setErrorMessage(finalizeError.message || 'Failed to complete sign up')
+      showError('Verification Failed', finalizeError.message || 'Failed to complete sign up')
     }
   }
 
@@ -53,8 +54,6 @@ export default function VerifyScreen() {
         value={code}
         onChangeText={setCode}
       />
-
-      {errorMessage ? <Text>{errorMessage}</Text> : null}
 
       <TouchableOpacity
       onPress={handleVerify}

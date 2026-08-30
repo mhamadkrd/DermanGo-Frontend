@@ -4,17 +4,18 @@ import { useState } from 'react'
 import { View, TextInput, Button, Text,TouchableOpacity } from 'react-native'
 import { Link, useRouter } from 'expo-router'
 import {createAuthStyles} from '../../assets/styles/authStyles.jsx'
+import { useErrorDialog } from '../../components/ErrorDialog.jsx'
 
 export default function ResetPasswordScreen() {
   const {  signIn } = useSignIn()
   const router = useRouter()
   const styles = createAuthStyles
+  const { showError } = useErrorDialog()
 
   const [emailAddress, setEmailAddress] = useState('')
   const [code, setCode] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [codeSent, setCodeSent] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('')
 
   // Step 1: send the reset code to the user's email
   const sendCode = async () => {
@@ -22,13 +23,13 @@ export default function ResetPasswordScreen() {
 
     const { error: createError } = await signIn.create({ identifier: emailAddress })
     if (createError) {
-      setErrorMessage(createError.message || 'Email not found')
+      showError('Reset Failed', createError.message || 'Email not found')
       return
     }
 
     const { error: sendError } = await signIn.resetPasswordEmailCode.sendCode()
     if (sendError) {
-      setErrorMessage(sendError.message || 'Failed to send code')
+      showError('Reset Failed', sendError.message || 'Failed to send code')
       return
     }
 
@@ -39,7 +40,7 @@ export default function ResetPasswordScreen() {
   const verifyCode = async () => {
     const { error } = await signIn.resetPasswordEmailCode.verifyCode({ code })
     if (error) {
-      setErrorMessage(error.message || 'Invalid code')
+      showError('Reset Failed', error.message || 'Invalid code')
     }
   }
 
@@ -51,7 +52,7 @@ export default function ResetPasswordScreen() {
     })
 
     if (error) {
-      setErrorMessage(error.message || 'Failed to reset password')
+      showError('Reset Failed', error.message || 'Failed to reset password')
       return
     }
 
@@ -75,7 +76,6 @@ export default function ResetPasswordScreen() {
           value={newPassword}
           onChangeText={setNewPassword}
         />
-        {errorMessage ? <Text>{errorMessage}</Text> : null}
 
         <TouchableOpacity 
         onPress={submitNewPassword}
@@ -97,7 +97,6 @@ export default function ResetPasswordScreen() {
           value={code}
           onChangeText={setCode}
         />
-        {errorMessage ? <Text>{errorMessage}</Text> : null}
 
         <TouchableOpacity 
         onPress={verifyCode}
@@ -120,7 +119,6 @@ export default function ResetPasswordScreen() {
         value={emailAddress}
         onChangeText={setEmailAddress}
       />
-      {errorMessage ? <Text>{errorMessage}</Text> : null}
 
       <TouchableOpacity
       onPress={sendCode}

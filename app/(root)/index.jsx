@@ -126,7 +126,7 @@ export default function Index() {
         <View style={styles.Header}>
           <View style={styles.leftHeader}>
             <Image
-              source={require('../../assets/images/Mohammed2.png')}
+              source={require('../../assets/images/avatarkurd.png')}
               style={styles.avatar}
             />
 
@@ -143,6 +143,7 @@ export default function Index() {
                 color={COLORS.surface}
                 size={25}
               />
+                <View style={styles.bellDot} />
             </TouchableOpacity>
           </View>
         </View>
@@ -235,7 +236,11 @@ export default function Index() {
         </View>
 
 
-        <TouchableOpacity style={styles.requestBtn} activeOpacity={0.8}>
+        <TouchableOpacity
+          style={styles.requestBtn}
+          activeOpacity={0.8}
+          onPress={() => router.push('/requests')}
+        >
 
           <View style={styles.leftSide}>
             <MaterialIcons
@@ -295,7 +300,9 @@ export default function Index() {
           ))}
 
         </View>
-
+    <TouchableOpacity onPress={handleSignOut}>
+      <Text>Log out</Text>
+    </TouchableOpacity>
       </ScrollView>
     </View>
   );

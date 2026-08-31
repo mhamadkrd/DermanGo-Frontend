@@ -12,7 +12,7 @@ export const usePharmaciesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/pharmacies`, {
+      const response = await fetch(`${API_URL}/pharmacies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const usePharmaciesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/pharmacies/${clerkId}`, {
+      const response = await fetch(`${API_URL}/pharmacies/${clerkId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -49,7 +49,7 @@ export const usePharmaciesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/pharmacies/${clerkId}`, {
+      const response = await fetch(`${API_URL}/pharmacies/${clerkId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

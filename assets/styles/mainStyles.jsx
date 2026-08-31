@@ -23,11 +23,11 @@ export const createmainStyles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
 
-  Container: {
-    paddingHorizontal: scale(20),
-    paddingTop: verticalScale(15),
-    paddingBottom: verticalScale(30),
-  },
+Container: {
+  paddingHorizontal: scale(20),
+  paddingTop: verticalScale(15),
+  paddingBottom: verticalScale(120), // was 30 — now clears the floating NavBar
+},
 
   Header: {
     width: "100%",
@@ -37,8 +37,8 @@ export const createmainStyles = StyleSheet.create({
     marginTop: scale(10),
   },
   avatar: {
-  width: scale(44),
-  height: verticalScale(44),
+  width: scale(45),
+  height: verticalScale(50),
   borderRadius: scale(22),   // exactly half of width/height = perfect circle
   resizeMode: 'cover',
 },
@@ -61,6 +61,15 @@ export const createmainStyles = StyleSheet.create({
     backgroundColor: COLORS.primary,
     justifyContent: "center",
     alignItems: "center",
+  },
+  bellDot: {
+    position: 'absolute',
+    top: verticalScale(10),
+    right: scale(7),
+    width: scale(7),
+    height: verticalScale(7),
+    borderRadius: scale(4),
+    backgroundColor: COLORS.surface,
   },
   leftHeader: {
     flexDirection: "row",

@@ -12,7 +12,7 @@ export const useResponsesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/responses`, {
+      const response = await fetch(`${API_URL}/responses`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -33,7 +33,7 @@ export const useResponsesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/responses/${pharmacyId}/requests/open`, {
+      const response = await fetch(`${API_URL}/responses/${pharmacyId}/requests/open`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -50,7 +50,7 @@ export const useResponsesApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${API_URL}/api/responses/${pharmacyId}/responses`, {
+      const response = await fetch(`${API_URL}/responses/${pharmacyId}/responses`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

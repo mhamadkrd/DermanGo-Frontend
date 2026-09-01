@@ -4,7 +4,7 @@ import { useAuth } from '@clerk/expo'
 import { useFocusEffect } from 'expo-router'
 import { createRequestsStyles } from '../../assets/styles/requestsStyles.jsx'
 import { useRequestsApi } from '../../Hooks/requestsHooks.js'
-import PageLoader from '../../components/PageLoader.jsx'
+import AppSkeleton from '../../components/skeletons/AppSkeleton.jsx'
 import NewRequestModal from '../../components/NewRequestModal.jsx'
 import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
@@ -93,7 +93,7 @@ export default function Requests() {
       return sortOrder === 'latest' ? dateB - dateA : dateA - dateB
     })
 
-  if (loading) return <PageLoader />
+  if (loading) return <AppSkeleton />
 
   return (
     <View style={styles.ScreenContainer}>

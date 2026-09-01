@@ -1,11 +1,10 @@
 import { useEffect, useState, useRef } from "react";
 import { Text, View, Image, TouchableOpacity, FlatList, ScrollView } from "react-native";
-import { useClerk } from "@clerk/expo";
+import { useClerk,useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
-import { useAuth } from '@clerk/expo'
 import { createmainStyles } from '../../assets/styles/mainStyles.jsx'
 import { useUserApi } from '../../Hooks/userHooks.js'
-import PageLoader from '../../components/PageLoader.jsx'
+import AppSkeleton from '../../components/skeletons/AppSkeleton.jsx'
 import { Ionicons, MaterialIcons, Feather, MaterialCommunityIcons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
 
@@ -107,7 +106,7 @@ export default function Index() {
   }, [sliderWidth])
 
 
-  if (loading) return <PageLoader />
+  if (loading) return <AppSkeleton />
 
   const handleSignOut = async () => {
     await signOut();

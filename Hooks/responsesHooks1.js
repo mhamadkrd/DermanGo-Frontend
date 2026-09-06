@@ -1,4 +1,3 @@
-// Mobile/Hooks/pharmaciesHooks.js
 import { useCallback } from 'react'
 import * as SecureStore from 'expo-secure-store'
 import { useErrorDialog } from '../components/ErrorDialog.jsx'

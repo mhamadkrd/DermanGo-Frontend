@@ -1,11 +1,14 @@
+//(app root)/requests.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
+
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { useAuth } from '@clerk/expo'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect, router } from 'expo-router'
 import { createRequestsStyles } from '../../assets/styles/requestsStyles.jsx'
 import { useRequestsApi } from '../../Hooks/requestsHooks.js'
 import AppSkeleton from '../../components/skeletons/AppSkeleton.jsx'
 import NewRequestModal from '../../components/NewRequestModal.jsx'
+import ReloadButton from '../../components/ReloadButton.jsx'
 import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
 
@@ -35,31 +38,26 @@ export default function Requests() {
 
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
   const [sortOrder, setSortOrder] = useState('latest')
   const [modalVisible, setModalVisible] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
-  const loadRequests = useCallback(async () => {
+  // silent=true keeps the current list on screen and just spins the reload
+  // control; silent=false (initial load) shows the full-screen skeleton.
+  const loadRequests = useCallback(async ({ silent } = {}) => {
     if (!userId) return
-    setLoading(true)
+    if (silent) setRefreshing(true)
+    else setLoading(true)
+
     const data = await getUserRequests(userId)
     setRequests(Array.isArray(data) ? data : [])
-    setLoading(false)
+
+    if (silent) setRefreshing(false)
+    else setLoading(false)
   }, [userId, getUserRequests])
 
-  // getUserRequests (and therefore loadRequests) can get a new identity on
-  // almost every render, because it depends on Clerk's getToken/showError,
-  // which aren't guaranteed to be referentially stable. If useFocusEffect's
-  // dependency array included `loadRequests` directly, it would re-run on
-  // every render (not just on actual screen focus), which — combined with a
-  // failing fetch calling showError -> re-render -> new loadRequests
-  // identity -> refire — created an infinite retry loop and repeated error
-  // dialogs.
-  //
-  // Fix: keep the latest loadRequests in a ref, and give useFocusEffect a
-  // callback with a stable (empty) dependency array. It will now only run on
-  // real focus events, but always calls the freshest loadRequests.
   const loadRequestsRef = useRef(loadRequests)
   useEffect(() => {
     loadRequestsRef.current = loadRequests
@@ -70,6 +68,8 @@ export default function Requests() {
       loadRequestsRef.current()
     }, [])
   )
+
+  const handleReload = () => loadRequests({ silent: true })
 
   const handleCreateRequest = async (medicineName) => {
     setSubmitting(true)
@@ -103,6 +103,8 @@ export default function Requests() {
         keyExtractor={(item) => String(item.id)}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleReload}
 
         ListHeaderComponent={
           <View>
@@ -113,9 +115,16 @@ export default function Requests() {
                 <Text style={styles.subtitle}>Track your medicine requests</Text>
               </View>
 
-              <TouchableOpacity style={styles.filterButton} activeOpacity={0.7}>
-                <Feather name="filter" size={18} color={COLORS.primary} />
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <ReloadButton
+                  onReload={handleReload}
+                  loading={refreshing}
+                  style={styles.filterButton}
+                />
+                <TouchableOpacity style={styles.filterButton} activeOpacity={0.7}>
+                  <Feather name="filter" size={18} color={COLORS.primary} />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.tabsRow}>
@@ -174,7 +183,11 @@ export default function Requests() {
           const createdDate = item.createdAt ? new Date(item.createdAt) : null
 
           return (
-            <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.card}
+              activeOpacity={0.85}
+              onPress={() => router.push({ pathname: '/request-details', params: { id: item.id } })}
+            >
 
               <View style={styles.cardTopRow}>
 
@@ -229,6 +242,7 @@ export default function Requests() {
               )}
 
             </TouchableOpacity>
+
           )
         }}
 

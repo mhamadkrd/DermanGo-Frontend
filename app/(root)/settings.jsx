@@ -1,12 +1,14 @@
+//(app root)/settings.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
 import { View, Text, ScrollView, TouchableOpacity, Switch, Modal, TextInput } from "react-native";
 import { useAuth, useUser } from '@clerk/expo'
-import { useFocusEffect } from 'expo-router'
+import { useFocusEffect,router } from 'expo-router'
 import { Feather, Ionicons, MaterialCommunityIcons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
 import { createSettingsStyles } from '../../assets/styles/Settingsstyles .jsx'
 import { useUserApi } from '../../Hooks/userHooks.js'
 import { useErrorDialog } from '../../components/ErrorDialog.jsx'
+import { usePharmacyAccess } from '../../Hooks/usePharmacyAccess.js'
 
 // Placeholder content — edit these strings whenever you're ready with real copy.
 const INFO_CONTENT = {
@@ -47,6 +49,22 @@ export default function Settings() {
   const [saving, setSaving] = useState(false)
 
   const [infoModal, setInfoModal] = useState(null) // 'privacy' | 'about' | 'help' | 'terms' | null
+
+const { pharmacy, unlock, lock } = usePharmacyAccess()
+const [pharmacyModalVisible, setPharmacyModalVisible] = useState(false)
+const [accessCodeInput, setAccessCodeInput] = useState('')
+const [unlocking, setUnlocking] = useState(false)
+
+const handleUnlockPharmacy = async () => {
+  setUnlocking(true)
+  const result = await unlock(accessCodeInput.trim())
+  setUnlocking(false)
+  if (result) {
+    setPharmacyModalVisible(false)
+    setAccessCodeInput('')
+    router.push('/pharmacy-dashboard')
+  }
+}
 
   const loadProfile = useCallback(async () => {
     if (!userId) return
@@ -111,6 +129,39 @@ export default function Settings() {
             <View style={styles.bellDot} />
           </TouchableOpacity>
         </View>
+
+        <Text style={styles.sectionLabel}>Pharmacy</Text>
+<View style={styles.card}>
+  {pharmacy ? (
+    <>
+      <NavRow
+        styles={styles}
+        icon={<MaterialCommunityIcons name="store" size={18} color={COLORS.primary} />}
+        title="Pharmacy Dashboard"
+        subtitle={`Connected: ${pharmacy.name}`}
+        onPress={() => router.push('/pharmacy-dashboard')}
+      />
+      <Divider styles={styles} />
+      <NavRow
+        styles={styles}
+        icon={<Feather name="log-out" size={18} color={COLORS.primary} />}
+        title="Disconnect Pharmacy"
+        subtitle="Remove this device's dashboard access"
+        isLast
+        onPress={lock}
+      />
+    </>
+  ) : (
+    <NavRow
+      styles={styles}
+      icon={<MaterialCommunityIcons name="store" size={18} color={COLORS.primary} />}
+      title="Pharmacy Portal"
+      subtitle="Enter your access code to unlock the dashboard"
+      isLast
+      onPress={() => setPharmacyModalVisible(true)}
+    />
+  )}
+</View>
 
         <Text style={styles.sectionLabel}>Account</Text>
         <View style={styles.card}>
@@ -238,6 +289,37 @@ export default function Settings() {
         </View>
 
       </ScrollView>
+
+      <Modal
+  visible={pharmacyModalVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={() => setPharmacyModalVisible(false)}
+>
+  <View style={styles.modalBackdrop}>
+    <View style={styles.modalCard}>
+      <Text style={styles.modalTitle}>Enter Access Code</Text>
+      <TextInput
+        value={accessCodeInput}
+        onChangeText={setAccessCodeInput}
+        placeholder="Access code"
+        placeholderTextColor={COLORS.placeholder}
+        autoCapitalize="characters"
+        style={styles.modalInput}
+      />
+      <View style={styles.modalActionsRow}>
+        <TouchableOpacity onPress={() => setPharmacyModalVisible(false)} disabled={unlocking}>
+          <Text style={styles.modalCancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleUnlockPharmacy} disabled={unlocking}>
+          <Text style={styles.modalSaveText}>
+            {unlocking ? 'Checking...' : 'Unlock'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
 
       {/* Edit modal — used for both Full Name and Phone Number */}
       <Modal

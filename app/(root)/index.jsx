@@ -12,15 +12,15 @@ import { COLORS } from '../../constant/colors.jsx'
 const ads = [
   {
     id: '1',
-    image: require('../../assets/images/ad1.png'),
+    image: require('../../assets/images/ad1.webp'),
   },
   {
     id: '2',
-    image: require('../../assets/images/ad2.png'),
+    image: require('../../assets/images/ad2.webp'),
   },
   {
     id: '3',
-    image: require('../../assets/images/ad3.png'),
+    image: require('../../assets/images/ad3.webp'),
   },
 ];
 
@@ -81,7 +81,7 @@ export default function Index() {
   }, [userId])
 
 
-  // Auto slider
+
   useEffect(() => {
     if (!sliderWidth) return
 

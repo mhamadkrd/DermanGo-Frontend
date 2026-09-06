@@ -1,3 +1,4 @@
+//app/_layout.jsx
 import { ClerkProvider, useAuth } from '@clerk/expo'
 import { tokenCache } from '@clerk/expo/token-cache'
 import { Slot, Redirect, usePathname } from 'expo-router'

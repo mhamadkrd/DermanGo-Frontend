@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, RefreshControl, Image } from 'react-native'
 import { useFocusEffect, Redirect, router } from 'expo-router'
 import { Feather, MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
@@ -13,6 +13,8 @@ const TABS = [
   { key: 'pending', label: 'Pending', icon: 'clock-outline' },
   { key: 'responded', label: 'Responded', icon: 'check-circle-outline' },
 ]
+
+const APP_LOAD_TIME = Date.now()
 
 function formatDate(iso) {
   const d = new Date(iso)
@@ -114,7 +116,7 @@ export default function PharmacyDashboard() {
     }
   }
 
-  const isNew = (createdAt) => Date.now() - new Date(createdAt).getTime() < 60 * 60 * 1000
+  const isNew = (createdAt) => APP_LOAD_TIME - new Date(createdAt).getTime() < 60 * 60 * 1000
 
   return (
     <View style={styles.container}>
@@ -277,6 +279,7 @@ export default function PharmacyDashboard() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{respondTarget?.medicineName}</Text>
+
             <Text style={styles.modalSubtitle}>Confirm price to mark as available</Text>
 
             <TextInput

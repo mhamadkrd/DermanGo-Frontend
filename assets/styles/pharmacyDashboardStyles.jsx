@@ -473,4 +473,5 @@ export const pharmacyDashboardStyles = StyleSheet.create({
     fontWeight: '700',
   },
 
+
 })

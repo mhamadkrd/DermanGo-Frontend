@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+//app/components/skeletons/AppSkeleton.jsx
+import React, { useEffect, useState } from "react";
 import {
   View,
   Animated,
@@ -6,7 +7,7 @@ import {
 } from "react-native";
 
 export default function AppSkeleton() {
-  const opacity = useRef(new Animated.Value(0.4)).current;
+  const [opacity] = useState(() => new Animated.Value(0.4));
 
   useEffect(() => {
     const animation = Animated.loop(

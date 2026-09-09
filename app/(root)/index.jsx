@@ -4,7 +4,7 @@ import { useClerk,useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { createmainStyles } from '../../assets/styles/mainStyles.jsx'
 import { useUserApi } from '../../Hooks/userHooks.js'
-import AppSkeleton from '../../components/skeletons/AppSkeleton.jsx'
+import PageLoader from '../../components/PageLoader.jsx'
 import { Ionicons, MaterialIcons, Feather, MaterialCommunityIcons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
 
@@ -106,7 +106,7 @@ export default function Index() {
   }, [sliderWidth])
 
 
-  if (loading) return <AppSkeleton />
+  if (loading) return <PageLoader />
 
   const handleSignOut = async () => {
     await signOut();

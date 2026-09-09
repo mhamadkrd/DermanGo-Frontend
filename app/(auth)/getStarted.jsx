@@ -3,6 +3,7 @@ import { Animated, FlatList, Image, Pressable, Text, TouchableOpacity, useWindow
 import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import { createAuthStyles } from '../../assets/styles/authStyles.jsx';
+import { useOnboarding } from '../_layout.jsx';
 
 const ONBOARDING_KEY = 'derman-go-onboarding-complete';
 const slides = [
@@ -12,7 +13,8 @@ const slides = [
 ];
 
 function OnboardingSlide({ item, isActive, width }) {
-  const animation = useRef(new Animated.Value(0)).current;
+  const [animation] = useState(() => new Animated.Value(0));
+
 
   useEffect(() => {
     if (isActive) {
@@ -42,12 +44,13 @@ export default function GetStartedScreen() {
   const listRef = useRef(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isFinishing, setIsFinishing] = useState(false);
+    const { completeOnboarding } = useOnboarding()   
 
-  const finishOnboarding = async () => {
+ const finishOnboarding = async () => {
     if (isFinishing) return;
     setIsFinishing(true);
     try {
-      await SecureStore.setItemAsync(ONBOARDING_KEY, 'true');
+      await completeOnboarding()  
     } finally {
       router.replace('/sign-in');
     }

@@ -31,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -41,7 +41,11 @@
         }
       ],
       "@clerk/expo",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

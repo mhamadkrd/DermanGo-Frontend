@@ -2,17 +2,11 @@ import { useCallback } from 'react'
 import { useAuth } from '@clerk/expo'
 import { useErrorDialog } from '../components/ErrorDialog.jsx'
 
-// EXPO_PUBLIC_API_URL might be set to "https://dermango.netlify.app",
-// "https://dermango.netlify.app/api" or "https://dermango.netlify.app/api/".
-// Normalize it down to just the domain root so we can safely append
-// "/api/requests..." exactly once, no matter how the env var is set.
 const RAW_API_URL = process.env.EXPO_PUBLIC_API_URL || ''
 const BASE_URL = RAW_API_URL
-  .replace(/\/api\/?$/, '') // strip a trailing /api or /api/
-  .replace(/\/+$/, '')      // strip any remaining trailing slash
+  .replace(/\/api\/?$/, '')
+  .replace(/\/+$/, '')
 
-// Safely parse a fetch Response as JSON, giving a clear error instead of
-// "Unexpected character: <" when the server returns HTML (e.g. a 404 page).
 async function parseJsonResponse(response) {
   const text = await response.text()
   try {
@@ -24,21 +18,39 @@ async function parseJsonResponse(response) {
   }
 }
 
+// Guarantees a request either resolves or fails within timeoutMs — this is
+// what stops the app from ever feeling "frozen": if the network genuinely
+// stalls, the user gets an error instead of an indefinite wait.
+async function fetchWithTimeout(url, options, timeoutMs = 25000) {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), timeoutMs)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export const useRequestsApi = () => {
   const { getToken } = useAuth()
   const { showError } = useErrorDialog()
 
-  const createRequest = useCallback(async ({ userId, medicineName }) => {
+  const createRequest = useCallback(async ({ userId, medicineName, image }) => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${BASE_URL}/api/requests`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/api/requests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId, medicineName }),
+        body: JSON.stringify({
+          userId,
+          medicineName,
+          imageBase64: image?.base64 || null,
+          imageMimeType: image?.mimeType || null,
+        }),
       })
 
       const data = await parseJsonResponse(response)
@@ -48,8 +60,12 @@ export const useRequestsApi = () => {
       }
       return data
     } catch (error) {
-      console.log('createRequest error:', error.message, 'BASE_URL:', BASE_URL)
-      showError('Could not send request', 'Please try again.')
+      const isTimeout = error.name === 'AbortError'
+      console.log('createRequest error:', isTimeout ? 'timed out' : error.message, 'BASE_URL:', BASE_URL)
+      showError(
+        'Could not send request',
+        isTimeout ? 'The request took too long. Please check your connection and try again.' : 'Please try again.'
+      )
     }
   }, [getToken, showError])
 
@@ -57,7 +73,7 @@ export const useRequestsApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${BASE_URL}/api/requests?userId=${userId}`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/api/requests?userId=${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
@@ -75,7 +91,7 @@ export const useRequestsApi = () => {
     try {
       const token = await getToken()
 
-      const response = await fetch(`${BASE_URL}/api/requests/${id}`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/api/requests/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 

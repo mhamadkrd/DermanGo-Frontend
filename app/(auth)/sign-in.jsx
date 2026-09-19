@@ -129,7 +129,7 @@ export default function SignInScreen() {
     <View style={styles.Container}>
 
       <Image 
-      source={require('../../assets/images/logo.png')}
+      source={require('../../assets/images/logo.webp')}
       style={styles.logo}
       />
 

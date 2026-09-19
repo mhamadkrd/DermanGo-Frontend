@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, Modal, TextInput, RefreshCont
 import { useFocusEffect, Redirect, router } from 'expo-router'
 import { Feather, MaterialCommunityIcons, Ionicons } from 'react-native-vector-icons'
 import { COLORS } from '../../constant/colors.jsx'
+import { scale, verticalScale, moderateScale } from '../../utils/responsive.jsx'
 import { usePharmacyAccess } from '../../Hooks/usePharmacyAccess.js'
 import { useResponsesApi } from '../../Hooks/pharmaciesHooks.js'
 import ReloadButton from '../../components/ReloadButton.jsx'
@@ -40,6 +41,7 @@ export default function PharmacyDashboard() {
   const [price, setPrice] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [viewingResponse, setViewingResponse] = useState(null)
+  const [viewingImageUrl, setViewingImageUrl] = useState(null) // full-screen photo viewer
 
   const loadAll = useCallback(async ({ silent } = {}) => {
     if (silent) setRefreshing(true)
@@ -67,6 +69,7 @@ export default function PharmacyDashboard() {
       id: r.id,
       medicineName: r.medicine_name,
       createdAt: r.created_at,
+      imageUrl: r.image_url || null,
     }))
     const responded = respondedItems.map((r) => ({
       type: 'responded',
@@ -76,6 +79,7 @@ export default function PharmacyDashboard() {
       respondedAt: r.responded_at,
       available: r.available,
       price: r.price,
+      imageUrl: r.image_url || null,
     }))
     const all = [...pending, ...responded].sort(
       (a, b) => new Date(b.createdAt || b.respondedAt) - new Date(a.createdAt || a.respondedAt)
@@ -189,7 +193,7 @@ export default function PharmacyDashboard() {
               <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
             </TouchableOpacity>
           ))}
-         
+
         </View>
 
         {!loading && merged.length === 0 && (
@@ -252,6 +256,30 @@ export default function PharmacyDashboard() {
               </View>
             </View>
 
+            {/* Tap to view the patient's attached photo full-screen */}
+            {item.imageUrl && (
+              <TouchableOpacity
+                onPress={() => setViewingImageUrl(item.imageUrl)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: scale(6),
+                  alignSelf: 'flex-start',
+                  backgroundColor: COLORS.background,
+                  borderRadius: scale(20),
+                  paddingHorizontal: scale(12),
+                  paddingVertical: verticalScale(7),
+                  marginTop: verticalScale(10),
+                }}
+              >
+                <Feather name="image" size={14} color={COLORS.primary} />
+                <Text style={{ fontSize: moderateScale(12), fontWeight: '600', color: COLORS.primary }}>
+                  View Photo
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {item.type === 'pending' ? (
               <View style={styles.actionsRow}>
                 <TouchableOpacity
@@ -275,12 +303,32 @@ export default function PharmacyDashboard() {
         ))}
       </ScrollView>
 
+      {/* Respond modal — reply with a price */}
       <Modal visible={!!respondTarget} transparent animationType="fade" onRequestClose={() => setRespondTarget(null)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{respondTarget?.medicineName}</Text>
 
             <Text style={styles.modalSubtitle}>Confirm price to mark as available</Text>
+
+            {respondTarget?.imageUrl && (
+              <TouchableOpacity
+                onPress={() => setViewingImageUrl(respondTarget.imageUrl)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: scale(6),
+                  alignSelf: 'flex-start',
+                  marginBottom: verticalScale(12),
+                }}
+              >
+                <Feather name="image" size={14} color={COLORS.primary} />
+                <Text style={{ fontSize: moderateScale(12), fontWeight: '600', color: COLORS.primary }}>
+                  View attached photo
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TextInput
               value={price}
@@ -303,11 +351,32 @@ export default function PharmacyDashboard() {
         </View>
       </Modal>
 
+      {/* View a past response */}
       <Modal visible={!!viewingResponse} transparent animationType="fade" onRequestClose={() => setViewingResponse(null)}>
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>{viewingResponse?.medicineName}</Text>
             <Text style={styles.modalSubtitle}>Your response</Text>
+
+            {viewingResponse?.imageUrl && (
+              <TouchableOpacity
+                onPress={() => setViewingImageUrl(viewingResponse.imageUrl)}
+                activeOpacity={0.7}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: scale(6),
+                  alignSelf: 'flex-start',
+                  marginBottom: verticalScale(12),
+                }}
+              >
+                <Feather name="image" size={14} color={COLORS.primary} />
+                <Text style={{ fontSize: moderateScale(12), fontWeight: '600', color: COLORS.primary }}>
+                  View attached photo
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <View style={styles.modalRow}>
               <Text style={styles.modalLabel}>Status</Text>
               <Text style={styles.modalValue}>{viewingResponse?.available ? 'Available' : 'Not Available'}</Text>
@@ -330,6 +399,50 @@ export default function PharmacyDashboard() {
               </TouchableOpacity>
             </View>
           </View>
+        </View>
+      </Modal>
+
+      {/* Full-screen photo viewer — shared by all three "View Photo" buttons above */}
+      <Modal
+        visible={!!viewingImageUrl}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setViewingImageUrl(null)}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: 'rgba(0,0,0,0.92)',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => setViewingImageUrl(null)}
+            hitSlop={12}
+            style={{
+              position: 'absolute',
+              top: verticalScale(50),
+              right: scale(20),
+              zIndex: 1,
+              width: scale(36),
+              height: scale(36),
+              borderRadius: scale(18),
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              justifyContent: 'center',
+              alignItems: 'center',
+            }}
+          >
+            <Feather name="x" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          {viewingImageUrl && (
+            <Image
+              source={{ uri: viewingImageUrl }}
+              style={{ width: '100%', height: '70%' }}
+              resizeMode="contain"
+            />
+          )}
         </View>
       </Modal>
 

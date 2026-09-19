@@ -76,6 +76,7 @@ export default function RootLayout() {
         <ClerkProvider
           publishableKey={publishableKey}
           tokenCache={tokenCache}
+          unsafe_disableDevelopmentModeConsoleWarning={true}
         >
           <ErrorDialogProvider>
             <OnboardingGate>

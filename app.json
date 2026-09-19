@@ -28,10 +28,17 @@
     },
     "plugins": [
       "expo-router",
+       [
+        "expo-image-picker",
+        {
+          "photosPermission": "DermanGO uses your photos to attach an image to a medicine request.",
+          "cameraPermission": "DermanGO uses your camera to attach a photo to a medicine request."
+        }
+      ],
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "./assets/images/logo.webp",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

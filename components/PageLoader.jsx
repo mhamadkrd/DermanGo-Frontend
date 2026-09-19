@@ -48,7 +48,7 @@ export default function PageLoader() {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require('../assets/images/pill_logo.png')}
+        source={require('../assets/images/pill_logo.webp')}
         style={[styles.logo, { transform: [{ rotate: spin }] }]}
         resizeMode="contain"
       />

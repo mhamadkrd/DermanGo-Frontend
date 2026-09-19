@@ -45,7 +45,7 @@ export default function AnimatedSplash({ onFinish }) {
       </Animated.View>
 
       <Animated.Image
-        source={require('../assets/images/logo.png')}
+        source={require('../assets/images/logo.webp')}
         style={[styles.logo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
         resizeMode="contain"
       />

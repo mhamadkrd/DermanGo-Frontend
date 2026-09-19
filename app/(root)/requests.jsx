@@ -1,7 +1,7 @@
 //(app root)/requests.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
 
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, TouchableOpacity,Image } from "react-native";
 import { useAuth } from '@clerk/expo'
 import { useFocusEffect, router } from 'expo-router'
 import { createRequestsStyles } from '../../assets/styles/requestsStyles.jsx'
@@ -72,15 +72,15 @@ export default function Requests() {
 
   const handleReload = () => loadRequests({ silent: true })
 
-  const handleCreateRequest = async (medicineName) => {
-    setSubmitting(true)
-    const result = await createRequest({ userId, medicineName })
-    setSubmitting(false)
-    if (result) {
-      setModalVisible(false)
-      loadRequests()
-    }
+const handleCreateRequest = async ({ medicineName, image }) => {
+  setSubmitting(true)
+  const result = await createRequest({ userId, medicineName, image })
+  setSubmitting(false)
+  if (result) {
+    setModalVisible(false)
+    loadRequests()
   }
+}
 
   const toggleSortOrder = () => {
     setSortOrder((prev) => (prev === 'latest' ? 'oldest' : 'latest'))
@@ -192,9 +192,19 @@ export default function Requests() {
 
               <View style={styles.cardTopRow}>
 
-                <View style={[styles.iconBadge, { backgroundColor: palette.bg }]}>
+                {/* <View style={[styles.iconBadge, { backgroundColor: palette.bg }]}>
                   <MaterialCommunityIcons name="pill" size={22} color={palette.color} />
-                </View>
+                </View> */}
+                {item.imageUrl ? (
+  <Image
+    source={{ uri: item.imageUrl }}
+    style={{ width: 48, height: 48, borderRadius: 14, marginRight: 12 }}
+  />
+) : (
+  <View style={[styles.iconBadge, { backgroundColor: palette.bg }]}>
+    <MaterialCommunityIcons name="pill" size={22} color={palette.color} />
+  </View>
+)}
 
                 <View style={styles.cardTextContainer}>
                   <Text style={styles.medicineName}>{item.medicineName}</Text>

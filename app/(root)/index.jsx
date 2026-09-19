@@ -150,7 +150,7 @@ export default function Index() {
 
         <View style={styles.mainLogoBackground}>
           <Image
-            source={require('../../assets/images/logo.png')}
+            source={require('../../assets/images/logo.webp')}
             style={styles.mainLogo}
           />
 
